@@ -9,6 +9,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 @Slf4j
 @RestController
 @RequestMapping("/category")
@@ -68,6 +70,25 @@ public class CategoryController {
         log.info("修改菜品：{}",category.getName());
         categoryService.updateById(category);
         return R.success("修改成功");
+    }
+
+    /**
+     * 菜品管理模块里面的新增菜品里面的菜品分类下拉框需要的数据
+     * @param category
+     * @return
+     */
+    @GetMapping("/list")
+    public R<List<Category>> list(Category category){
+        log.info("拉取菜品分类的数据...");
+        LambdaQueryWrapper<Category> lambdaQueryWrapper=new LambdaQueryWrapper<>();
+
+        lambdaQueryWrapper.eq(category.getType()!=null,Category::getType,category.getType());
+
+        lambdaQueryWrapper.orderByAsc(Category::getSort).orderByAsc(Category::getUpdateTime);
+
+        List<Category> list = categoryService.list(lambdaQueryWrapper);
+
+        return R.success(list);
     }
 
 }

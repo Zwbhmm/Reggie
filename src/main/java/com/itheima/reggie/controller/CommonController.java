@@ -61,8 +61,9 @@ public class CommonController {
     public void download(String name, HttpServletResponse response){
 
         try {
+            File file = new File(pathName + name);
             //输入流，通过输入流读取文件内容
-            FileInputStream fileInputStream = new FileInputStream(new File(pathName+name));
+            FileInputStream fileInputStream = new FileInputStream(file);
             //通过输出流向浏览器写回数据，展示图片
             ServletOutputStream outputStream = response.getOutputStream();
             //设置响应的类型
@@ -77,11 +78,11 @@ public class CommonController {
             //关闭资源
             outputStream.close();
             fileInputStream.close();
-        } catch (Exception e) {
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
             e.printStackTrace();
         }
-
-
     }
 
 }

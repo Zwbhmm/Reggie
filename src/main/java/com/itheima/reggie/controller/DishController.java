@@ -6,6 +6,7 @@ import com.itheima.reggie.common.R;
 import com.itheima.reggie.dto.DishDto;
 import com.itheima.reggie.entity.Category;
 import com.itheima.reggie.entity.Dish;
+import com.itheima.reggie.entity.DishFlavor;
 import com.itheima.reggie.service.CategoryService;
 import com.itheima.reggie.service.DishFlavorService;
 import com.itheima.reggie.service.DishService;
@@ -14,7 +15,11 @@ import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
+import javax.security.auth.callback.LanguageCallback;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
+import java.util.stream.Collector;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -84,4 +89,76 @@ public class DishController {
         return R.success(dishDtoPage);
     }
 
+    /**
+     * 修改菜品时回显数据
+     * @param id
+     * @return
+     */
+    @GetMapping("/{id}")
+    public R<DishDto> edit(@PathVariable Long id){
+        DishDto dishDto = dishService.getByIdWithFlavors(id);
+        return R.success(dishDto);
+    }
+
+    /**
+     * 修改数据完成之后保存数据
+     * @param dishDto
+     * @return
+     */
+    @PutMapping
+    public R<String> saveEdit(@RequestBody DishDto dishDto){
+        log.info(dishDto.toString());
+        dishService.updateWithFlavors(dishDto);
+        return R.success("新增成功");
+    }
+
+    /**
+     * 修改起售状态
+     * @param status
+     * @param ids
+     * @return
+     */
+    @PostMapping("/status/{status}")
+    public R<String> editSale(@PathVariable int status,@RequestParam List<Long> ids){
+        log.info(status+"&"+ids);
+        List<Dish> dishList = new ArrayList<>();
+        for(Long id : ids){
+            Dish dish = new Dish();
+            dish.setId(id);
+            dish.setStatus(status);
+            dishList.add(dish);
+        }
+        log.info(dishList.toString());
+        dishService.updateBatchById(dishList);
+        return R.success("修改成功");
+    }
+
+    /**
+     * 删除菜品
+     * @param ids
+     * @return
+     */
+    @DeleteMapping
+    public R<String> delete(@RequestParam List<Long> ids){
+        log.info(ids.toString());
+        dishService.removeByIds(ids);
+        LambdaQueryWrapper<DishFlavor> lambdaQueryWrapper =new LambdaQueryWrapper<>();
+        lambdaQueryWrapper.in(DishFlavor::getDishId,ids);
+        dishFlavorService.remove(lambdaQueryWrapper);
+        return R.success("删除成功");
+    }
+
+    /**
+     * 套餐管理里面的添加菜品功能实现
+     * @param categoryId
+     * @return
+     */
+    @GetMapping("/list")
+    public R<List<Dish>> list(Long categoryId){
+        LambdaQueryWrapper<Dish> lambdaQueryWrapper = new LambdaQueryWrapper<>();
+        lambdaQueryWrapper.eq(categoryId!=null,Dish::getCategoryId,categoryId);
+        List<Dish> list = dishService.list(lambdaQueryWrapper);
+        log.info(list.toString());
+        return R.success(list);
+    }
 }

@@ -27,4 +27,9 @@ public class GlobalExceptionHandler {
     public R<String> CategoryException(CategoryException ex){
         return R.error(ex.getMessage());
     }
+
+    @ExceptionHandler(value = ConsumerException.class)
+    public R<String> ConsumeException(ConsumerException ex){
+        return  R.error(ex.getMessage());
+    }
 }
